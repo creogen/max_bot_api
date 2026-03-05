@@ -47,3 +47,13 @@ message = MaxBotApi::Builders::MessageBuilder.new
 
 client.messages.send(message)
 ```
+
+You can also attach a photo directly by token:
+
+```ruby
+message = MaxBotApi::Builders::MessageBuilder.new
+  .set_chat(12345)
+  .add_photo_by_token("photo-token")
+
+client.messages.send(message)
+```

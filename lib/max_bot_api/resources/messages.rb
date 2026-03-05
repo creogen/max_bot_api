@@ -14,9 +14,11 @@ module MaxBotApi
       def get_messages(chat_id: nil, message_ids: nil, from: nil, to: nil, count: nil)
         query = {}
         query['chat_id'] = chat_id if chat_id && chat_id.to_i != 0
-        Array(message_ids).each do |mid|
-          query['message_ids'] ||= []
-          query['message_ids'] << mid
+        query['message_ids'] = Array(message_ids).join(',') if message_ids && !Array(message_ids).empty?
+        if from && to
+          from_i = from.to_i
+          to_i = to.to_i
+          from, to = to, from if from_i > to_i
         end
         query['from'] = from if from && from.to_i != 0
         query['to'] = to if to && to.to_i != 0
@@ -36,11 +38,13 @@ module MaxBotApi
       # @param message_id [String]
       # @param message [MaxBotApi::Builders::MessageBuilder, Hash]
       def edit_message(message_id:, message:)
-        body = message_payload(message)
-        result = @client.request(:put, 'messages', query: { 'message_id' => message_id }, body: body)
-        return true if result.is_a?(Hash) && result[:success]
+        with_attachment_retry do
+          body = message_payload(message)
+          result = @client.request(:put, 'messages', query: { 'message_id' => message_id }, body: body)
+          return true if result.is_a?(Hash) && result[:success]
 
-        raise Error, (result[:message] || 'message update failed')
+          raise Error, (result[:message] || 'message update failed')
+        end
       end
 
       # Delete a message by ID.
@@ -64,13 +68,13 @@ module MaxBotApi
       # Send a message builder without returning the created message.
       # @param message [MaxBotApi::Builders::MessageBuilder, Hash]
       def send(message)
-        send_message(message, with_result: false)
+        with_attachment_retry { send_message(message, with_result: false) }
       end
 
       # Send a message builder and return the created message hash.
       # @param message [MaxBotApi::Builders::MessageBuilder, Hash]
       def send_with_result(message)
-        send_message(message, with_result: true)
+        with_attachment_retry { send_message(message, with_result: true) }
       end
 
       # Check if a message can be sent to the provided phone numbers.
@@ -131,6 +135,19 @@ module MaxBotApi
                      else
                        value
                      end
+        end
+      end
+
+      def with_attachment_retry
+        attempts = 0
+        begin
+          yield
+        rescue ApiError => e
+          attempts += 1
+          raise e unless e.attachment_not_ready? && attempts < Client::MAX_RETRIES
+
+          sleep(2**(attempts - 1))
+          retry
         end
       end
     end

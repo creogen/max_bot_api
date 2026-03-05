@@ -6,7 +6,7 @@ module MaxBotApi
   # Main API client. Holds auth config and provides resource accessors.
   class Client
     # Default API base URL.
-    DEFAULT_BASE_URL = 'https://botapi.max.ru/'
+    DEFAULT_BASE_URL = 'https://platform-api.max.ru/'
     # Default API version appended as query param.
     DEFAULT_VERSION = '1.2.5'
     # Default pause between update polling loops.
@@ -195,8 +195,8 @@ module MaxBotApi
     def handle_response(response)
       return parse_body(response) if response.status == 200
 
-      api_message = parse_error_message(response)
-      raise ApiError.new(code: response.status, message: api_message)
+      error_payload = parse_error_payload(response)
+      raise ApiError.new(code: response.status, message: error_payload[:message], details: error_payload[:details])
     end
 
     def parse_body(response)
@@ -209,17 +209,20 @@ module MaxBotApi
       JSON.parse(body, symbolize_names: true)
     end
 
-    def parse_error_message(response)
+    def parse_error_payload(response)
       body = response.body.to_s
-      return response.reason_phrase.to_s if body.empty?
+      return { message: response.reason_phrase.to_s, details: nil } if body.empty?
 
       json = JSON.parse(body)
-      return json['error'] if json.is_a?(Hash) && json['error']
-      return json['message'] if json.is_a?(Hash) && json['message']
+      if json.is_a?(Hash)
+        return { message: json['code'], details: json['message'] } if json['code'] && json['message']
+        return { message: json['error'], details: json['details'] || json['message'] } if json['error']
+        return { message: json['message'], details: json['details'] } if json['message']
+      end
 
-      response.reason_phrase.to_s
+      { message: response.reason_phrase.to_s, details: nil }
     rescue JSON::ParserError
-      response.reason_phrase.to_s
+      { message: response.reason_phrase.to_s, details: nil }
     end
   end
 end

@@ -38,7 +38,9 @@ client.messages.send(message)
 ```ruby
 client = MaxBotApi::Client.new(
   token: ENV.fetch("TOKEN"),
-  base_url: "https://botapi.max.ru/",
+  base_url: "https://platform-api.max.ru/",
   version: "1.2.5"
 )
 ```
+
+Note: if you still use the legacy host, set `base_url: "https://botapi.max.ru/"`.

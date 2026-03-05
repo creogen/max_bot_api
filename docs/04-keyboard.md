@@ -18,6 +18,7 @@ keyboard
 keyboard
   .add_row
   .add_callback("Picture", "positive", "picture")
+  .add_message("Continue")
 
 message = MaxBotApi::Builders::MessageBuilder.new
   .set_chat(12345)
@@ -34,3 +35,4 @@ client.messages.send(message)
 - `add_contact(text)`
 - `add_geolocation(text, quick)`
 - `add_open_app(text, app, payload, contact_id)`
+- `add_message(text)`

@@ -85,6 +85,15 @@ module MaxBotApi
         add_button(button)
       end
 
+      # Add a message button.
+      def add_message(text)
+        button = {
+          type: 'message',
+          text: text
+        }
+        add_button(button)
+      end
+
       # Build row payload.
       def build
         @cols

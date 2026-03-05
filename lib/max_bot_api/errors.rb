@@ -27,6 +27,10 @@ module MaxBotApi
       other.is_a?(ApiError) && other.code == code
     end
 
+    def attachment_not_ready?
+      message == 'attachment.not.ready'
+    end
+
     private
 
     def build_message

@@ -32,8 +32,12 @@ module MaxBotApi
       # @param url [String]
       def upload_media_from_url(type:, url:)
         response = Faraday.get(url.to_s)
+        raise Error, "fetch URL failed: HTTP #{response.status}" unless response.status.between?(200, 299)
+
         name = attachment_name(response.headers)
         upload_media_from_reader_with_name(type: type, io: StringIO.new(response.body), name: name)
+      rescue Faraday::Error => e
+        raise NetworkError.new(op: 'GET upload source', original_error: e)
       end
 
       # Upload media from an IO object.
@@ -89,18 +93,46 @@ module MaxBotApi
         upload_type = UPLOAD_TYPES.fetch(type.to_sym) { type.to_s }
         endpoint = @client.request(:post, 'uploads', query: { 'type' => upload_type })
 
-        file_name = name.to_s.empty? ? 'file' : name.to_s
+        file_name = name.to_s.empty? ? 'file' : File.basename(name.to_s)
         file_part = Faraday::Multipart::FilePart.new(io, nil, file_name)
 
         response = Faraday.post(endpoint[:url]) do |req|
           req.body = { 'data' => file_part }
         end
 
-        raise Error, "upload failed: #{response.status}" unless response.status == 200
+        raise upload_api_error(response) unless response.status.between?(200, 299)
+
+        return { token: endpoint[:token] } if %w[audio video].include?(upload_type) && endpoint[:token]
 
         JSON.parse(response.body, symbolize_names: true)
       rescue Faraday::Error => e
         raise NetworkError.new(op: 'POST uploads', original_error: e)
+      end
+
+      def upload_api_error(response)
+        body = response.body.to_s
+        return Error.new("upload failed: HTTP #{response.status}") if body.empty?
+
+        json = begin
+          JSON.parse(body)
+        rescue StandardError
+          nil
+        end
+        if json.is_a?(Hash)
+          if json['code'] && json['message']
+            return ApiError.new(code: response.status, message: json['code'], details: json['message'])
+          end
+
+          if json['error']
+            return ApiError.new(code: response.status, message: json['error'],
+                                details: json['details'] || json['message'])
+          end
+          if json['message']
+            return ApiError.new(code: response.status, message: json['message'], details: json['details'])
+          end
+        end
+
+        Error.new("upload failed: HTTP #{response.status}")
       end
 
       def attachment_name(headers)

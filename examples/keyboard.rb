@@ -15,6 +15,7 @@ keyboard
   .add_row
   .add_link('Open MAX', 'positive', 'https://max.ru')
   .add_callback('Audio', 'negative', 'audio')
+  .add_message('Continue')
 
 message = MaxBotApi::Builders::MessageBuilder.new
                                              .set_chat(chat_id)

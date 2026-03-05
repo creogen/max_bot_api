@@ -4,6 +4,9 @@ module MaxBotApi
   module Builders
     # Builder for message payloads.
     class MessageBuilder
+      FORMAT_HTML = 'html'
+      FORMAT_MARKDOWN = 'markdown'
+
       attr_reader :user_id, :chat_id, :reset
 
       # Create a builder from an existing hash payload.
@@ -104,6 +107,11 @@ module MaxBotApi
       def add_photo(photo_tokens)
         payload = photo_tokens.is_a?(Hash) ? photo_tokens : { photos: photo_tokens }
         add_attachment(type: 'image', payload: { photos: payload[:photos] || payload['photos'] })
+      end
+
+      # Attach a photo payload by token.
+      def add_photo_by_token(token)
+        add_attachment(type: 'image', payload: { token: token })
       end
 
       # Attach audio payload.

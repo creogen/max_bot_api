@@ -44,7 +44,7 @@ client.messages.send(
 ```ruby
 client = MaxBotApi::Client.new(
   token: ENV.fetch("TOKEN"),
-  base_url: "https://botapi.max.ru/",
+  base_url: "https://platform-api.max.ru/",
   version: "1.2.5"
 )
 ```
@@ -53,6 +53,28 @@ Notes:
 
 - The client uses `Authorization: <token>` (no `Bearer`).
 - Every request includes `v=<version>` query param.
+
+## 0.2.0 updates
+
+- Default API host is now `https://platform-api.max.ru/` (override with `base_url:` if you need the legacy host).
+- Message send/edit retries automatically when the API responds with `attachment.not.ready`.
+- New helpers: `MessageBuilder#add_photo_by_token`, `KeyboardRowBuilder#add_message`.
+
+Example:
+
+```ruby
+message = MaxBotApi::Builders::MessageBuilder.new
+  .set_chat(12345)
+  .set_text("Hello")
+  .add_photo_by_token("photo-token")
+
+keyboard = MaxBotApi::Builders::KeyboardBuilder.new
+row = keyboard.add_row
+row.add_message("Continue")
+
+message.add_keyboard(keyboard)
+client.messages.send(message)
+```
 
 ## Common tasks
 
