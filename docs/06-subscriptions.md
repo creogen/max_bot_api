@@ -14,6 +14,8 @@ client.subscriptions.subscribe(
 )
 ```
 
+When handling webhook requests, validate the `X-Max-Bot-Api-Secret` header before parsing the body.
+
 ## Unsubscribe
 
 ```ruby

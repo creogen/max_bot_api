@@ -35,6 +35,7 @@ end
 
 ```ruby
 post "/webhook" do
+  halt 401 unless client.webhook_secret_valid?(headers: request.env, secret: ENV.fetch("WEBHOOK_SECRET"))
   update = client.parse_webhook(request.body.read)
 
   case update[:update_type]

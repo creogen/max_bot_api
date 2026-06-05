@@ -110,6 +110,7 @@ module MaxBotApi
         query = {}
         query['chat_id'] = message.chat_id if message.chat_id && message.chat_id.to_i != 0
         query['user_id'] = message.user_id if message.user_id && message.user_id.to_i != 0
+        query['disable_link_preview'] = 'true' if message.disable_link_preview?
 
         response = @client.request(:post, 'messages', query: query, body: message_payload(message),
                                                       reset: message.reset?)

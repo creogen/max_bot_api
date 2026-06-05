@@ -20,6 +20,10 @@ keyboard
   .add_callback("Picture", "positive", "picture")
   .add_message("Continue")
 
+keyboard
+  .add_row
+  .add_clipboard("Copy docs", "https://dev.max.ru/docs-api/methods/POST/messages")
+
 message = MaxBotApi::Builders::MessageBuilder.new
   .set_chat(12345)
   .add_keyboard(keyboard)
@@ -36,3 +40,4 @@ client.messages.send(message)
 - `add_geolocation(text, quick)`
 - `add_open_app(text, app, payload, contact_id)`
 - `add_message(text)`
+- `add_clipboard(text, payload)`

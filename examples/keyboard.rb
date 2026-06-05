@@ -17,6 +17,10 @@ keyboard
   .add_callback('Audio', 'negative', 'audio')
   .add_message('Continue')
 
+keyboard
+  .add_row
+  .add_clipboard('Copy docs', 'https://dev.max.ru/docs-api/methods/POST/messages')
+
 message = MaxBotApi::Builders::MessageBuilder.new
                                              .set_chat(chat_id)
                                              .add_keyboard(keyboard)

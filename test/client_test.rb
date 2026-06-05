@@ -23,4 +23,20 @@ class ClientTest < Minitest::Test
     error = assert_raises(MaxBotApi::ApiError) { @client.bots.get_bot }
     assert_match(/bad/, error.message)
   end
+
+  def test_webhook_secret_valid_accepts_matching_header
+    assert @client.webhook_secret_valid?(headers: { 'X-Max-Bot-Api-Secret' => 'secret' }, secret: 'secret')
+  end
+
+  def test_webhook_secret_valid_accepts_case_insensitive_header
+    assert @client.webhook_secret_valid?(headers: { 'http_x_max_bot_api_secret' => 'secret' }, secret: 'secret')
+  end
+
+  def test_webhook_secret_valid_rejects_missing_header
+    refute @client.webhook_secret_valid?(headers: {}, secret: 'secret')
+  end
+
+  def test_webhook_secret_valid_rejects_wrong_secret
+    refute @client.webhook_secret_valid?(headers: { 'X-Max-Bot-Api-Secret' => 'wrong' }, secret: 'secret')
+  end
 end

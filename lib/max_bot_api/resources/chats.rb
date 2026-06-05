@@ -86,6 +86,25 @@ module MaxBotApi
       def send_action(chat_id:, action:)
         @client.request(:post, "chats/#{chat_id}/actions", body: { action: action })
       end
+
+      # Pin a message in chat.
+      # @param chat_id [Integer]
+      # @param message_id [String]
+      def pin_message(chat_id:, message_id:)
+        @client.request(:put, "chats/#{chat_id}/pin", body: { message_id: message_id })
+      end
+
+      # Fetch the currently pinned message.
+      # @param chat_id [Integer]
+      def get_pinned_message(chat_id:)
+        @client.request(:get, "chats/#{chat_id}/pin")
+      end
+
+      # Remove the currently pinned message.
+      # @param chat_id [Integer]
+      def unpin_message(chat_id:)
+        @client.request(:delete, "chats/#{chat_id}/pin")
+      end
     end
   end
 end

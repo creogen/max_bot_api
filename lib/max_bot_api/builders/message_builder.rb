@@ -7,7 +7,7 @@ module MaxBotApi
       FORMAT_HTML = 'html'
       FORMAT_MARKDOWN = 'markdown'
 
-      attr_reader :user_id, :chat_id, :reset
+      attr_reader :user_id, :chat_id, :reset, :disable_link_preview
 
       # Create a builder from an existing hash payload.
       # @param hash [Hash]
@@ -19,6 +19,9 @@ module MaxBotApi
         builder.set_user(hash[:user_id] || hash['user_id']) if hash.key?(:user_id) || hash.key?('user_id')
         builder.set_chat(hash[:chat_id] || hash['chat_id']) if hash.key?(:chat_id) || hash.key?('chat_id')
         builder.set_reset(hash[:reset] || hash['reset']) if hash.key?(:reset) || hash.key?('reset')
+        if hash.key?(:disable_link_preview) || hash.key?('disable_link_preview')
+          builder.set_disable_link_preview(hash[:disable_link_preview] || hash['disable_link_preview'])
+        end
 
         payload = hash[:message] || hash['message'] || hash
         builder.apply_payload(payload)
@@ -30,6 +33,7 @@ module MaxBotApi
         @user_id = nil
         @chat_id = nil
         @reset = false
+        @disable_link_preview = false
         @message = {
           attachments: []
         }
@@ -50,6 +54,12 @@ module MaxBotApi
       # Toggle reset mode (skip Authorization header).
       def set_reset(reset)
         @reset = !!reset
+        self
+      end
+
+      # Toggle link previews in sent messages.
+      def set_disable_link_preview(disable_link_preview)
+        @disable_link_preview = !!disable_link_preview
         self
       end
 
@@ -175,6 +185,11 @@ module MaxBotApi
       # Whether reset mode is enabled.
       def reset?
         @reset
+      end
+
+      # Whether link previews are disabled for message delivery.
+      def disable_link_preview?
+        @disable_link_preview
       end
 
       # Return the message payload hash.

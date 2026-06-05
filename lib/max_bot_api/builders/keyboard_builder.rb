@@ -94,6 +94,16 @@ module MaxBotApi
         add_button(button)
       end
 
+      # Add a clipboard button.
+      def add_clipboard(text, payload)
+        button = {
+          type: 'clipboard',
+          text: text,
+          payload: payload
+        }
+        add_button(button)
+      end
+
       # Build row payload.
       def build
         @cols

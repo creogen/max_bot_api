@@ -1,3 +1,4 @@
 max_bot_api-*.gem
 .original
 .current
+.previous

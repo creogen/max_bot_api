@@ -33,10 +33,10 @@ client.messages.send(
 
 ## Features
 
-- Full API coverage: Bots, Chats, Messages, Subscriptions, Uploads, Debugs.
+- Broad API coverage: Bots, Chats, Messages, Subscriptions, Uploads, Debugs.
 - Builder helpers for messages and keyboards.
 - Long polling updates with retry and backoff.
-- Webhook parsing helper.
+- Webhook parsing and secret validation helpers.
 - Upload helpers for files, photos, audio, video.
 
 ## Configuration
@@ -54,11 +54,10 @@ Notes:
 - The client uses `Authorization: <token>` (no `Bearer`).
 - Every request includes `v=<version>` query param.
 
-## 0.2.0 updates
+## Changelog
 
-- Default API host is now `https://platform-api.max.ru/` (override with `base_url:` if you need the legacy host).
-- Message send/edit retries automatically when the API responds with `attachment.not.ready`.
-- New helpers: `MessageBuilder#add_photo_by_token`, `KeyboardRowBuilder#add_message`.
+- See `CHANGELOG.md` for version-by-version release notes.
+- See `BREAKING_CHANGES_0.1.0_to_0.2.0.md` for the detailed `0.2.0` migration notes.
 
 Example:
 
@@ -125,7 +124,27 @@ end
 
 ```ruby
 body = request.body.read
+halt 401 unless client.webhook_secret_valid?(headers: request.env, secret: ENV.fetch("WEBHOOK_SECRET"))
 update = client.parse_webhook(body)
+```
+
+### Disable link previews
+
+```ruby
+message = MaxBotApi::Builders::MessageBuilder.new
+  .set_chat(12345)
+  .set_text("https://max.ru")
+  .set_disable_link_preview(true)
+
+client.messages.send(message)
+```
+
+### Pin and unpin chat messages
+
+```ruby
+client.chats.pin_message(chat_id: 12345, message_id: "mid123")
+client.chats.get_pinned_message(chat_id: 12345)
+client.chats.unpin_message(chat_id: 12345)
 ```
 
 ## Builders

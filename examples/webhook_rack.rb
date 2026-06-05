@@ -8,6 +8,10 @@ client = MaxBotApi::Client.new(token: ENV.fetch('TOKEN'))
 app = lambda do |env|
   req = Rack::Request.new(env)
   if req.post? && req.path == '/webhook'
+    unless client.webhook_secret_valid?(headers: env, secret: ENV.fetch('WEBHOOK_SECRET'))
+      return [401, { 'Content-Type' => 'text/plain' }, ['secret not allowed']]
+    end
+
     update = client.parse_webhook(req.body.read)
 
     if update[:update_type] == 'message_created'

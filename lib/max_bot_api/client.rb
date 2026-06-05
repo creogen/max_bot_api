@@ -9,6 +9,8 @@ module MaxBotApi
     DEFAULT_BASE_URL = 'https://platform-api.max.ru/'
     # Default API version appended as query param.
     DEFAULT_VERSION = '1.2.5'
+    # Webhook secret header name.
+    SECRET_HEADER = 'X-Max-Bot-Api-Secret'
     # Default pause between update polling loops.
     DEFAULT_PAUSE = 1
     # Default limit for updates requests.
@@ -131,6 +133,13 @@ module MaxBotApi
       Updates::Parser.parse_update(body.to_s, debug: debug)
     end
 
+    # Validates the webhook secret header against the expected secret.
+    # @param headers [Hash]
+    # @param secret [String]
+    def webhook_secret_valid?(headers:, secret:)
+      header_value(headers, SECRET_HEADER) == secret.to_s
+    end
+
     # Perform an HTTP request.
     # @param method [Symbol]
     # @param path [String]
@@ -190,6 +199,18 @@ module MaxBotApi
 
     def multipart_body?(body)
       body.values.any? { |value| value.is_a?(Faraday::Multipart::FilePart) }
+    end
+
+    def header_value(headers, name)
+      target = name.to_s.downcase
+
+      headers.each do |key, value|
+        normalized = key.to_s.downcase.tr('_', '-')
+        normalized = normalized.sub(/\Ahttp-/, '')
+        return value if normalized == target
+      end
+
+      nil
     end
 
     def handle_response(response)
